@@ -1,162 +1,323 @@
 <!DOCTYPE html>
+
 <html lang="he" dir="rtl">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>משחק LAVI - תפוס לבבות</title>
+
+    <title>משחק החתונה - LAVI תופס לבבות</title>
+
     <style>
+
         body, html {
+
             margin: 0;
+
             padding: 0;
+
             width: 100%;
+
             height: 100%;
+
             overflow: hidden;
+
         }
+
         #gameCanvas {
+
             display: block;
+
             touch-action: none;
+
         }
+
         #score {
+
             position: absolute;
+
             top: 10px;
+
             right: 10px;
+
             font-size: 20px;
+
             color: white;
+
             text-shadow: 2px 2px 2px black;
+
         }
+
     </style>
+
 </head>
+
 <body>
+
     <canvas id="gameCanvas"></canvas>
+
     <div id="score">ניקוד: 0</div>
+
     <script>
+
         const canvas = document.getElementById('gameCanvas');
+
         const ctx = canvas.getContext('2d');
+
         const scoreElement = document.getElementById('score');
 
+
+
         let player, hearts, arrows, score;
+
         let gameWidth, gameHeight;
 
+
+
         function resizeGame() {
+
             gameWidth = window.innerWidth;
+
             gameHeight = window.innerHeight;
+
             canvas.width = gameWidth;
+
             canvas.height = gameHeight;
+
             player = { x: gameWidth / 2 - 25, y: gameHeight - 100, width: 50, height: 80 };
+
             hearts = [];
+
             arrows = [];
+
             score = 0;
+
         }
+
+
 
         function drawPlayer() {
+
             ctx.fillStyle = 'white';
+
             ctx.fillRect(player.x, player.y + 30, player.width, player.height - 30);
+
             
+
             ctx.beginPath();
+
             ctx.arc(player.x + player.width / 2, player.y + 15, 15, 0, Math.PI * 2);
+
             ctx.fill();
+
             
+
             ctx.fillStyle = 'black';
+
             ctx.font = '12px Arial';
+
             ctx.textAlign = 'center';
+
             ctx.fillText('LAVI', player.x + player.width / 2, player.y + 20);
+
             
+
             ctx.beginPath();
+
             ctx.moveTo(player.x, player.y + 40);
+
             ctx.lineTo(player.x - 10, player.y + 60);
+
             ctx.moveTo(player.x + player.width, player.y + 40);
+
             ctx.lineTo(player.x + player.width + 10, player.y + 60);
+
             ctx.strokeStyle = 'white';
+
             ctx.stroke();
+
             
+
             ctx.beginPath();
+
             ctx.moveTo(player.x + 10, player.y + player.height);
+
             ctx.lineTo(player.x + 10, player.y + player.height + 20);
+
             ctx.moveTo(player.x + player.width - 10, player.y + player.height);
+
             ctx.lineTo(player.x + player.width - 10, player.y + player.height + 20);
+
             ctx.stroke();
+
         }
+
+
 
         function drawHeart(x, y) {
+
             ctx.fillStyle = 'red';
+
             ctx.beginPath();
+
             ctx.moveTo(x, y + 5);
+
             ctx.bezierCurveTo(x, y, x - 5, y, x - 5, y + 5);
+
             ctx.bezierCurveTo(x - 5, y + 10, x, y + 15, x, y + 15);
+
             ctx.bezierCurveTo(x, y + 15, x + 5, y + 10, x + 5, y + 5);
+
             ctx.bezierCurveTo(x + 5, y, x, y, x, y + 5);
+
             ctx.fill();
+
         }
+
+
 
         function drawArrow(x, y) {
+
             ctx.fillStyle = 'black';
+
             ctx.beginPath();
+
             ctx.moveTo(x, y);
+
             ctx.lineTo(x - 3, y + 10);
+
             ctx.lineTo(x + 3, y + 10);
+
             ctx.closePath();
+
             ctx.fill();
+
         }
+
+
 
         function updateGame() {
+
             ctx.clearRect(0, 0, gameWidth, gameHeight);
+
             drawPlayer();
 
+
+
             if (Math.random() < 0.03) hearts.push({ x: Math.random() * gameWidth, y: 0 });
+
             if (Math.random() < 0.02) arrows.push({ x: Math.random() * gameWidth, y: 0 });
 
+
+
             hearts = hearts.filter(heart => {
+
                 heart.y += gameHeight / 200;
+
                 drawHeart(heart.x, heart.y);
+
                 if (heart.y > gameHeight) return false;
+
                 if (collision(player, heart)) {
+
                     score++;
+
                     scoreElement.textContent = 'ניקוד: ' + score;
+
                     return false;
+
                 }
+
                 return true;
+
             });
+
+
 
             arrows = arrows.filter(arrow => {
+
                 arrow.y += gameHeight / 150;
+
                 drawArrow(arrow.x, arrow.y);
+
                 if (arrow.y > gameHeight) return false;
+
                 if (collision(player, arrow)) {
+
                     alert('המשחק נגמר! הניקוד הסופי שלך: ' + score);
+
                     resizeGame();
+
                     return false;
+
                 }
+
                 return true;
+
             });
 
+
+
             requestAnimationFrame(updateGame);
+
         }
+
+
 
         function collision(rect, obj) {
+
             return rect.x < obj.x + 10 &&
+
                    rect.x + rect.width > obj.x &&
+
                    rect.y < obj.y + 10 &&
+
                    rect.y + rect.height > obj.y;
+
         }
+
+
 
         function movePlayer(x) {
+
             player.x = Math.max(0, Math.min(x - player.width / 2, gameWidth - player.width));
+
         }
 
+
+
         window.addEventListener('resize', resizeGame);
+
         window.addEventListener('orientationchange', resizeGame);
 
+
+
         canvas.addEventListener('touchmove', function(e) {
+
             e.preventDefault();
+
             movePlayer(e.touches[0].clientX);
+
         }, { passive: false });
 
+
+
         canvas.addEventListener('mousemove', function(e) {
+
             movePlayer(e.clientX);
+
         });
 
+
+
         resizeGame();
+
         updateGame();
+
     </script>
+
 </body>
+
 </html>
